@@ -47,13 +47,14 @@ return new class extends Migration
         Schema::create('link_files', function (Blueprint $table) {
             $table->id(); // Уникальный идентификатор для каждой ссылки
             $table->unsignedBigInteger('user_file_id'); // Внешний ключ к таблице user_files
-            $table->string('filename')->nullable();
-            $table->string('token')->nullable(); // Токен для доступа к файлу
-            $table->boolean('downloadable')->nullable(); // Статус доступности для скачивания
-            $table->timestamp('created_at')->nullable(); // Время создания ссылки
-            $table->string('password')->nullable(); // Пароль для доступа к файлу
+            $table->string('filename');
+            $table->string('token'); // Токен для доступа к файлу
+            $table->boolean('downloadable'); // Статус доступности для скачивания
+            $table->timestamp('created_at'); // Время создания ссылки
+            $table->string('password'); // Пароль для доступа к файлу
 
             $table->foreign('user_file_id')->references('id')->on('user_files')->onDelete('cascade');
+            $table->foreign('user_file_id')->references('id')->on('user_files')->onUpdate('cascade');
         });
 
 

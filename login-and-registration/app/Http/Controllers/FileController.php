@@ -31,29 +31,12 @@ class FileController extends Controller
             return [
                 'user_file_id' => $group[0]->user_file_id,
                 'filename' => $group[0]->filename,
-                'tokens' => $group->pluck('token')->filter()->toArray(), // Список токенов в виде массива
-                'downloadables' => $group->pluck('downloadable')->filter()->toArray(), // Список доступности
-                'passwords' => $group->pluck('password')->filter()->toArray() // Список паролей
+                'tokens' => $group->pluck('token')->toArray(), // Список токенов в виде массива
+                'downloadables' => $group->pluck('downloadable')->toArray(), // Список доступности
+                'passwords' => $group->pluck('password')->toArray() // Список паролей
             ];
         })->values(); // Приводим к массиву
 
-        // Обработка данных для обеспечения корректного формата
-        foreach ($groupedFiles as &$file) {
-            // Если массив токенов пуст, задаем значение по умолчанию
-            if (empty($file['tokens'])) {
-                $file['tokens'] = ['Нет токенов'];
-            }
-
-            // Если массив доступности пуст, задаем значение по умолчанию
-            if (empty($file['downloadables'])) {
-                $file['downloadables'] = ['Нет доступности'];
-            }
-
-            // Если массив паролей пуст, задаем значение по умолчанию
-            if (empty($file['passwords'])) {
-                $file['passwords'] = ['Нет паролей'];
-            }
-        }
 
         return response()->json($groupedFiles);
     }
@@ -63,7 +46,8 @@ class FileController extends Controller
         // Получаем файл из базы данных
         $filename = DB::table('link_files')->where('token', $token)->value('filename');
         $token_id = DB::table('link_files')->where('token', $token)->value('id');
-        if (!$filename) {
+        $status = DB::table('link_files')->where('token', $token)->value('downloadable');
+        if ($token_id === null || $status === 0) {
             return redirect()->back()->withErrors(['message' => 'Файл не найден.']);
         }
 
@@ -74,28 +58,28 @@ class FileController extends Controller
     // Метод для обработки скачивания файла
     public function downloadFile(Request $request, $token_id)
     {
-        $filename = DB::table('link_files')->where('id', $token_id)->value('filename');
+        // Получаем данные о файле
+        $fileData = DB::table('link_files')->where('id', $token_id)->first();
 
-        if (!$filename) {
-            return redirect()->back()->withErrors(['message' => 'Файл не найден.']);
+        if (!$fileData) {
+            return redirect()->route('profile.profile')->withErrors(['message' => 'Файл не найден.']);
         }
 
-        $status = DB::table('link_files')->where('id', $token_id)->value('downloadable');
-        $pass = DB::table('link_files')->where('id', $token_id)->value('password');
         // Проверяем статус downloadable
-        if ($status != true) {
-            return redirect()->back()->withErrors(['message' => 'Файл недоступен для скачивания.']);
+        if (!$fileData->downloadable) {
+            return redirect()->route('profile.profile')->withErrors(['message' => 'Файл недоступен для скачивания.']);
         }
 
         // Проверяем пароль
-        if ($request->input('password') !== $pass) {
+        if ($request->input('password') !== $fileData->password) {
             return redirect()->back()->withErrors(['message' => 'Неверный пароль.']);
         }
 
         // Скачиваем файл
-        $filePath = public_path('userFiles/' . $filename);
+        $filePath = public_path('userFiles/' . $fileData->filename);
 
-        DB::table('link_files')->where('id', $token_id)->delete();
+        // Обновляем статус доступности
+        DB::table('link_files')->where('id', $token_id)->update(['downloadable' => false]);
 
         return response()->download($filePath);
     }
@@ -131,7 +115,6 @@ class FileController extends Controller
         // Формируем путь к файлу
         $fileLink = "files/" . $filename; // Получаем URL файла
 
-        $randomPassword = Str::random(16); // Генерируем случайный пароль длиной 16 символов
 
         // Добавляем запись в базу данных
         try {
