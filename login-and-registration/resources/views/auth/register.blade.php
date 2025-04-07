@@ -1,5 +1,4 @@
 @extends('layouts.auth-master')
-
 @section('content')
     <form method="post" action="{{ route('register.perform') }}">
 
@@ -10,7 +9,7 @@
 
         <div class="form-group form-floating mb-3">
             <input type="email" class="form-control" name="email" value="{{ old('email') }}" placeholder="name@example.com" required="required" autofocus>
-            <label for="floatingEmail">Email address</label>
+            <label for="floatingEmail">Email</label>
             @if ($errors->has('email'))
                 <span class="text-danger text-left">{{ $errors->first('email') }}</span>
             @endif
@@ -41,7 +40,9 @@
         </div>
 
         <button class="w-100 btn btn-lg btn-primary" type="submit">Зарегистрироваться</button>
-
+        <div class="mt-3 text-center">
+            <a href="{{ route('login.show') }}" class="btn btn-link">Уже есть аккаунт</a>
+        </div>
         @include('auth.partials.copy')
     </form>
 @endsection

@@ -1,5 +1,5 @@
-@extends('layouts.auth-master')
 
+@extends('layouts.auth-master')
 @section('content')
     <form method="post" action="{{ route('login.perform') }}">
 
@@ -27,7 +27,9 @@
         </div>
 
         <button class="w-100 btn btn-lg btn-primary" type="submit">Войти в аккаунт</button>
-
+        <div class="mt-3 text-center">
+            <a href="{{ route('register.show') }}" class="btn btn-link">Зарегистрироваться</a>
+        </div>
         @include('auth.partials.copy')
     </form>
 @endsection

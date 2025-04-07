@@ -13,6 +13,8 @@ class LoginController extends Controller
      *
      * @return Renderable
      */
+
+
     public function show()
     {
         return view('auth.login');
@@ -53,4 +55,10 @@ class LoginController extends Controller
     {
         return redirect()->intended();
     }
+
+    protected function unauthenticated(Request $request, $guards)
+    {
+        return redirect()->route('login.show');
+    }
+
 }

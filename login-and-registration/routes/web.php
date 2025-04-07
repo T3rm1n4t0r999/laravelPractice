@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
 Route::group(['namespace' => 'App\Http\Controllers'], function()
 {
     /**
@@ -43,5 +44,14 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
         // profile
         Route::get('/profile', 'ProfileController@index')->name('profile.profile');
         Route::get('/import', 'ImportController@index')->name('profile.import');
+        //upload
+        Route::post('/profile/upload', 'FileController@upload')->name('files.upload');
+        //generate file link
+        Route::post('/files/generateFileLink/', 'FileController@generateFileLink')->name('files.generateFileLink');
+
+        Route::get('/files', 'FileController@getUserFiles')->name('files.getUserFiles');
+
+        Route::get('/files/{token}', 'FileController@showPasswordForm')->name('files.showPasswordForm');
+        Route::post('/files/{token}', 'FileController@downloadFile')->name('files.download');
     });
 });

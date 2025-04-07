@@ -36,6 +36,27 @@ return new class extends Migration
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
+
+        Schema::create('user_files', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->string('filename')->unique();
+            $table->string('file_link')->nullable();
+        });
+
+        Schema::create('link_files', function (Blueprint $table) {
+            $table->id(); // Уникальный идентификатор для каждой ссылки
+            $table->unsignedBigInteger('user_file_id'); // Внешний ключ к таблице user_files
+            $table->string('filename')->nullable();
+            $table->string('token')->nullable(); // Токен для доступа к файлу
+            $table->boolean('downloadable')->nullable(); // Статус доступности для скачивания
+            $table->timestamp('created_at')->nullable(); // Время создания ссылки
+            $table->string('password')->nullable(); // Пароль для доступа к файлу
+
+            $table->foreign('user_file_id')->references('id')->on('user_files')->onDelete('cascade');
+        });
+
+
     }
 
     /**
@@ -46,5 +67,7 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('user_files');
+        Schema::dropIfExists('link_files');
     }
 };
