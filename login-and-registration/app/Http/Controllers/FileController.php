@@ -15,11 +15,11 @@ class FileController extends Controller
     public function getUserFiles(Request $request)
     {
         // Получаем файлы пользователя и объединяем с токенами
-        $files = DB::table('user_files as uf')
-            ->leftJoin('link_files as lf', 'uf.id', '=', 'lf.user_file_id')
+        $files = DB::table('files as uf')
+            ->leftJoin('links as lf', 'uf.id', '=', 'lf.file_id')
             ->where('uf.user_id', Auth::id())
             ->select(
-                'uf.id as user_file_id',
+                'uf.id as file_id',
                 'uf.filename',
                 'lf.token',
                 'lf.downloadable',
@@ -30,7 +30,7 @@ class FileController extends Controller
         // Группировка файлов с токенами
         $groupedFiles = $files->groupBy('filename')->map(function ($group) {
             return [
-                'user_file_id' => $group[0]->user_file_id,
+                'file_id' => $group[0]->file_id,
                 'filename' => $group[0]->filename,
                 'tokens' => $group->pluck('token')->toArray(), // Список токенов в виде массива
                 'downloadables' => $group->pluck('downloadable')->toArray(), // Список доступности
@@ -45,9 +45,9 @@ class FileController extends Controller
     public function showPasswordForm($token)
     {
         // Получаем файл из базы данных
-        $filename = DB::table('link_files')->where('token', $token)->value('filename');
-        $token_id = DB::table('link_files')->where('token', $token)->value('id');
-        $status = DB::table('link_files')->where('token', $token)->value('downloadable');
+        $filename = DB::table('links')->where('token', $token)->value('filename');
+        $token_id = DB::table('links')->where('token', $token)->value('id');
+        $status = DB::table('links')->where('token', $token)->value('downloadable');
         if ($token_id === null || $status === 0) {
             return redirect()->back()->withErrors(['message' => 'Файл не найден.']);
         }
@@ -60,7 +60,7 @@ class FileController extends Controller
     public function downloadFile(Request $request, $token_id)
     {
         // Получаем данные о файле
-        $fileData = DB::table('link_files')->where('id', $token_id)->first();
+        $fileData = DB::table('links')->where('id', $token_id)->first();
 
         if (!$fileData) {
             return redirect()->route('profile.profile')->withErrors(['message' => 'Файл не найден.']);
@@ -77,7 +77,7 @@ class FileController extends Controller
         }
 
         // Обновляем статус доступности
-        DB::table('link_files')->where('id', $token_id)->update(['downloadable' => false]);
+        DB::table('links')->where('id', $token_id)->update(['downloadable' => false]);
 
         return response()->download(storage_path('app/private/userFiles/' . $fileData->filename));
     }
@@ -111,7 +111,7 @@ class FileController extends Controller
         Storage::disk('local')->putFileAs('/userFiles/', $file, $filename);
 
 
-        DB::table('user_files')->insert([
+        DB::table('files')->insert([
             'user_id' => Auth::id(),
             'filename' => $filename,
         ]);
@@ -121,14 +121,8 @@ class FileController extends Controller
     }
     public function generateFileLink(Request $request)
     {
-
-        // Валидация входящих данных
-//        $request->validate([
-//            'id' => 'required|exists:user_files,id', // Убедитесь, что файл существует
-//        ]);
-
         // Получаем файл
-        $userFile = DB::table('user_files')->where('id', $request->id)->first();
+        $userFile = DB::table('files')->where('id', $request->id)->first();
 
         if (!$userFile) {
             return response()->json(['error' => 'Файл не найден.'], 404);
@@ -138,9 +132,9 @@ class FileController extends Controller
         $uniqueToken = Str::random(32);
         $password = Str::random(16);
 
-        // Сохранение нового токена в таблицу link_files
-        DB::table('link_files')->insert([
-            'user_file_id' => $userFile->id, // Ссылка на файл
+        // Сохранение нового токена в таблицу links
+        DB::table('links')->insert([
+            'file_id' => $userFile->id, // Ссылка на файл
             'token' => $uniqueToken,
             'filename' => $userFile->filename,
             'downloadable' => true, // Укажите статус доступности

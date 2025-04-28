@@ -63,6 +63,6 @@ class AuthController extends Controller
 
         auth()->login($user);
 
-        return redirect('/profile')->with('success', "Account successfully registered.");
+        return redirect()->route('profile.profile')->with('success', "Account successfully registered.");
     }
 }

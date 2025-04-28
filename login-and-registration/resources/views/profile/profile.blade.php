@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/assets/jqueary/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
             $('#get-files').on('click', function() {
@@ -71,7 +71,7 @@
                                 html += '</td>';
 
                                 // Добавляем кнопку "Сгенерировать токен"
-                                html += '<td><button class="btn btn-secondary generate-link" data-file-id="' + file.user_file_id + '">Сгенерировать токен</button></td>';
+                                html += '<td><button class="btn btn-secondary generate-link" data-file-id="' + file.file_id + '">Сгенерировать токен</button></td>';
                                 html += '</tr>';
                             });
                         }
