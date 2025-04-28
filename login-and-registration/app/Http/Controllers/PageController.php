@@ -18,4 +18,10 @@ class PageController
     {
         return view('home.index');
     }
+
+    public function showErrorPage()
+    {
+        return view('failure.error');
+    }
+
 }
