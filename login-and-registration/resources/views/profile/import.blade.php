@@ -1,7 +1,7 @@
 @extends('layouts.app-master')
 @section('content')
     <div class="bg-light p-5 rounded">
-        <form id="js-form" method="POST" enctype="multipart/form-data" action="{{ route('files.upload') }}">
+        <form id="js-form" method="POST" enctype="multipart/form-data" action="{{ route('import.upload') }}">
             @csrf <!-- Не забудьте добавить CSRF-токен для защиты -->
             <input id="js-file" type="file" name="file" required>
             <button type="submit">Загрузить файл</button>

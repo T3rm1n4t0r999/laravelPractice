@@ -45,11 +45,11 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
         Route::get('/profile', 'PageController@showProfilePage')->name('profile.profile');
         Route::get('/import', 'PageController@showImportPage')->name('profile.import');
         //upload
-        Route::post('/profile/upload', 'FileController@upload')->name('files.upload');
+        Route::post('/import/upload', 'FileController@upload')->name('import.upload');
         //generate file link
         Route::post('/files/generateFileLink/', 'FileController@generateFileLink')->name('files.generateFileLink');
 
-        Route::get('/files', 'FileController@getUserFiles')->name('files.getUserFiles');
+        Route::get('/profile/files', 'FileController@getUserFiles')->name('files.getUserFiles');
 
         Route::get('/files/{token}', 'FileController@showPasswordForm')->name('files.showPasswordForm');
         Route::post('/files/{token}', 'FileController@downloadFile')->name('files.download');
