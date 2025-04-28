@@ -19,20 +19,20 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
     /**
      * Home Routes
      */
-    Route::get('/', 'HomeController@index')->name('home.index');
+    Route::get('/', 'PageController@showHomePage')->name('home.index');
 
     Route::group(['middleware' => ['guest']], function() {
         /**
          * Register Routes
          */
-        Route::get('/register', 'RegisterController@show')->name('register.show');
-        Route::post('/register', 'RegisterController@register')->name('register.perform');
+        Route::get('/register', 'AuthController@showRegisterPage')->name('register.show');
+        Route::post('/register', 'AuthController@register')->name('register.perform');
 
         /**
          * Login Routes
          */
-        Route::get('/login', 'LoginController@show')->name('login.show');
-        Route::post('/login', 'LoginController@login')->name('login.perform');
+        Route::get('/login', 'AuthController@showLoginPage')->name('login.show');
+        Route::post('/login', 'AuthController@login')->name('login.perform');
 
     });
 
@@ -40,10 +40,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
         /**
          * Logout Routes
          */
-        Route::get('/logout', 'LogoutController@perform')->name('logout.perform');
+        Route::get('/logout', 'AuthController@logout')->name('logout.perform');
         // profile
-        Route::get('/profile', 'ProfileController@index')->name('profile.profile');
-        Route::get('/import', 'ImportController@index')->name('profile.import');
+        Route::get('/profile', 'PageController@showProfilePage')->name('profile.profile');
+        Route::get('/import', 'PageController@showImportPage')->name('profile.import');
         //upload
         Route::post('/profile/upload', 'FileController@upload')->name('files.upload');
         //generate file link
