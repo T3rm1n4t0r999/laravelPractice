@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use function Laravel\Prompts\password;
+use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
 {
@@ -75,13 +76,10 @@ class FileController extends Controller
             return redirect()->back()->withErrors(['message' => 'Неверный пароль.']);
         }
 
-        // Скачиваем файл
-        $filePath = public_path('userFiles/' . $fileData->filename);
-
         // Обновляем статус доступности
         DB::table('link_files')->where('id', $token_id)->update(['downloadable' => false]);
 
-        return response()->download($filePath);
+        return response()->download(storage_path('app/private/userFiles/' . $fileData->filename));
     }
 
     public function upload(Request $request)
@@ -107,27 +105,19 @@ class FileController extends Controller
         $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9-_\.]/', '_', $file->getClientOriginalName());
 
         // Указываем жесткий путь для сохранения файла
-        $hardPath = public_path('userFiles'); // Полный путь к директории в public
+        //$hardPath = public_path('userFiles'); // Полный путь к директории в public
 
         // Сохраняем файл в указанную директорию
-        $file->move($hardPath, $filename); // Сохраняем файл
-
-        // Формируем путь к файлу
-        $fileLink = "files/" . $filename; // Получаем URL файла
+        Storage::disk('local')->putFileAs('/userFiles/', $file, $filename);
 
 
-        // Добавляем запись в базу данных
-        try {
-            DB::table('user_files')->insert([
-                'user_id' => Auth::id(),
-                'filename' => $filename,
-                'file_link' => $fileLink, // Используем URL файла
-            ]);
+        DB::table('user_files')->insert([
+            'user_id' => Auth::id(),
+            'filename' => $filename,
+        ]);
 
-            return response()->json(['success' => 'Файл успешно загружен и сохранен в базе данных.']);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Ошибка при сохранении файла в базе данных: ' . $e->getMessage()], 500);
-        }
+        return response()->json(['success' => 'Файл успешно загружен и сохранен в базе данных.']);
+
     }
     public function generateFileLink(Request $request)
     {
