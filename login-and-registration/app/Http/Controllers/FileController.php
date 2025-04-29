@@ -90,7 +90,9 @@ class FileController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->messages()], 422);
+            return response()->json([
+                'errors' => $validator->errors()
+            ], 422); // Используем стандартный код 422 для ошибок валидации
         }
 
         // Получаем файл из запроса
@@ -98,26 +100,33 @@ class FileController extends Controller
 
         // Проверяем, действительно ли файл загружен
         if (!$file->isValid()) {
-            return response()->json(['error' => 'Файл недействителен.'], 400);
+            return response()->json([
+                'error' => 'Файл недействителен.'
+            ], 400);
         }
 
-        // Генерируем имя файла
-        $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9-_\.]/', '_', $file->getClientOriginalName());
+        try {
+            // Генерируем имя файла
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9-_\.]/', '_', $file->getClientOriginalName());
 
-        // Указываем жесткий путь для сохранения файла
-        //$hardPath = public_path('userFiles'); // Полный путь к директории в public
+            // Сохраняем файл
+            Storage::disk('local')->putFileAs('/userFiles/', $file, $filename);
 
-        // Сохраняем файл в указанную директорию
-        Storage::disk('local')->putFileAs('/userFiles/', $file, $filename);
+            // Сохраняем информацию в БД
+            DB::table('files')->insert([
+                'user_id' => Auth::id(),
+                'filename' => $filename,
+            ]);
 
+            return response()->json([
+                'success' => 'Файл успешно загружен и сохранен в базе данных.'
+            ]);
 
-        DB::table('files')->insert([
-            'user_id' => Auth::id(),
-            'filename' => $filename,
-        ]);
-
-        return response()->json(['success' => 'Файл успешно загружен и сохранен в базе данных.']);
-
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Ошибка при сохранении файла: ' . $e->getMessage()
+            ], 500);
+        }
     }
     public function generateFileLink(Request $request)
     {
